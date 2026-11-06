@@ -1,13 +1,21 @@
 name: Lint C++
 
 on:
+  push:
+    paths:
+      - "**.cpp"
+      - "**.cc"
+      - "**.hpp"
+      - "**.h"
+      - ".clang-format"
+      - ".github/workflows/cpp-lint.yml"
+  workflow_dispatch:
   workflow_call:
     inputs:
       fallback-style:
         description: clang-format style used when no .clang-format exists
         type: string
         default: Google
-  workflow_dispatch:
 
 permissions:
   contents: read

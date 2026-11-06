@@ -1,8 +1,15 @@
 name: Python Lint
 
 on:
-  workflow_call:
+  push:
+    paths:
+      - "**.py"
+      - "ruff.toml"
+      - ".ruff.toml"
+      - "pyproject.toml"
+      - ".github/workflows/py-lint.yml"
   workflow_dispatch:
+  workflow_call:
 
 permissions:
   contents: read

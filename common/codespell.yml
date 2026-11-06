@@ -1,12 +1,24 @@
 name: Codespell
 
 on:
+  push:
+    paths:
+      - "**.py"
+      - "**.cpp"
+      - "**.cc"
+      - "**.hpp"
+      - "**.h"
+      - "**.md"
+      - "**.txt"
+      - ".codespellrc"
+      - ".github/workflows/codespell.yml"
+  workflow_dispatch:
   workflow_call:
     inputs:
       patterns:
         description: Space-separated globs of files to check
         type: string
-        required: true
+        default: "*.py *.cpp *.cc *.hpp *.h *.md *.txt"
 
 permissions:
   contents: read
@@ -25,7 +37,7 @@ jobs:
       - id: files
         uses: ./.github/actions/shared/list-files
         with:
-          patterns: ${{ inputs.patterns }}
+          patterns: ${{ inputs.patterns || '*.py *.cpp *.cc *.hpp *.h *.md *.txt' }}
 
       - if: steps.files.outputs.count != '0'
         run: xargs -a "${{ steps.files.outputs.list }}" codespell
