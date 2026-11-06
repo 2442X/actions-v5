@@ -38,12 +38,25 @@ def install(path):
     return out
 
 
+def put(scr, y, x, text, n, attr=0):
+    h, w = scr.getmaxyx()
+    if y < 0 or y >= h or x < 0 or x >= w:
+        return
+    n = min(n, w - x - 1)
+    if n <= 0:
+        return
+    try:
+        scr.addnstr(y, x, text, n, attr)
+    except curses.error:
+        pass
+
+
 def draw_box_text(scr, lines, title=""):
     scr.erase()
     h, w = scr.getmaxyx()
-    scr.addnstr(0, 0, f" {title} ".ljust(w), w, curses.color_pair(1) | curses.A_BOLD)
+    put(scr, 0, 0, f" {title} ".ljust(w), w, curses.color_pair(1) | curses.A_BOLD)
     for i, line in enumerate(lines[: h - 2]):
-        scr.addnstr(i + 2, 2, line, w - 4)
+        put(scr, i + 2, 2, line, w - 4)
     scr.refresh()
 
 
@@ -60,8 +73,8 @@ def select_screen(scr, files, root):
             top = cur - view + 1
 
         scr.erase()
-        scr.addnstr(0, 0, f" Install workflows  ·  {REPO}".ljust(w), w, curses.color_pair(1) | curses.A_BOLD)
-        scr.addnstr(1, 1, f"into {os.path.join(root, DEST)}", w - 2, curses.A_DIM)
+        put(scr, 0, 0, f" Install workflows  ·  {REPO}".ljust(w), w, curses.color_pair(1) | curses.A_BOLD)
+        put(scr, 1, 1, f"into {os.path.join(root, DEST)}", w - 2, curses.A_DIM)
 
         for row, idx in enumerate(range(top, min(top + view, len(files)))):
             f = files[idx]
@@ -71,12 +84,12 @@ def select_screen(scr, files, root):
             line = f" {mark} {d + '/':<8}{name}"
             if existing[f]:
                 line += "  (exists)"
-            scr.addnstr(row + 3, 0, line.ljust(w), w, attr | (curses.color_pair(2) if idx in checked else 0))
+            put(scr, row + 3, 0, line.ljust(w), w, attr | (curses.color_pair(2) if idx in checked else 0))
 
         status = f" {len(checked)}/{len(files)} selected"
-        scr.addnstr(h - 2, 0, status.ljust(w), w, curses.A_BOLD)
+        put(scr, h - 2, 0, status.ljust(w), w, curses.A_BOLD)
         keys = " ↑/↓ move   space toggle   a all/none   enter install   q quit"
-        scr.addnstr(h - 1, 0, keys.ljust(w), w, curses.color_pair(1))
+        put(scr, h - 1, 0, keys.ljust(w), w, curses.color_pair(1))
         scr.refresh()
 
         k = scr.getch()
