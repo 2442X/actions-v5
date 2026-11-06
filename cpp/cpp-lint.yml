@@ -31,21 +31,16 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y clang-format cppcheck
 
-      - id: files
-        uses: ./.github/actions/shared/list-files
-        with:
-          patterns: "*.cpp *.cc *.hpp *.h"
-
       - name: clang-format
-        if: steps.files.outputs.count != '0'
+        env:
+          FALLBACK_STYLE: ${{ inputs.fallback-style || 'Google' }}
         run: |
-          xargs -a "${{ steps.files.outputs.list }}" \
-            clang-format --style=file --fallback-style="${{ inputs.fallback-style || 'Google' }}" --dry-run --Werror
+          git ls-files -z -- '*.cpp' '*.cc' '*.hpp' '*.h' | xargs -0 -r \
+            clang-format --style=file --fallback-style="$FALLBACK_STYLE" --dry-run --Werror
 
       - name: cppcheck
-        if: steps.files.outputs.count != '0'
         run: |
-          xargs -a "${{ steps.files.outputs.list }}" cppcheck \
+          git ls-files -z -- '*.cpp' '*.cc' '*.hpp' '*.h' | xargs -0 -r cppcheck \
             --enable=warning,style,performance,portability \
             --inline-suppr \
             --suppress=missingIncludeSystem \

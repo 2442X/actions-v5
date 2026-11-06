@@ -21,9 +21,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: ./.github/actions/py/setup
+      - uses: actions/setup-python@v5
         with:
-          packages: ruff
+          python-version: "3.x"
+
+      - run: pip install ruff
 
       - run: ruff check .
 

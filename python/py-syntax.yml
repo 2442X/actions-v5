@@ -18,6 +18,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: ./.github/actions/py/setup
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
 
       - run: python -m compileall -q . -x '(\.venv|build|\.git)'

@@ -30,14 +30,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: ./.github/actions/py/setup
+      - uses: actions/setup-python@v5
         with:
-          packages: codespell
+          python-version: "3.x"
 
-      - id: files
-        uses: ./.github/actions/shared/list-files
-        with:
-          patterns: ${{ inputs.patterns || '*.py *.cpp *.cc *.hpp *.h *.md *.txt' }}
+      - run: pip install codespell
 
-      - if: steps.files.outputs.count != '0'
-        run: xargs -a "${{ steps.files.outputs.list }}" codespell
+      - name: codespell
+        env:
+          PATTERNS: ${{ inputs.patterns || '*.py *.cpp *.cc *.hpp *.h *.md *.txt' }}
+        run: |
+          set -f
+          git ls-files -z -- $PATTERNS | xargs -0 -r codespell
