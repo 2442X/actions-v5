@@ -1,1 +1,57 @@
+name: Lint C++
 
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - "**.cpp"
+      - "**.cc"
+      - "**.hpp"
+      - "**.h"
+      - ".clang-format"
+      - ".github/workflows/lint-cpp.yml"
+  pull_request:
+    paths:
+      - "**.cpp"
+      - "**.cc"
+      - "**.hpp"
+      - "**.h"
+      - ".clang-format"
+      - ".github/workflows/lint-cpp.yml"
+
+jobs:
+  lint-cpp:
+    name: clang-format + cppcheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang-format cppcheck
+
+      - name: Collect C++ files
+        id: files
+        run: |
+          git ls-files '*.cpp' '*.cc' '*.hpp' '*.h' \
+            | grep -Ev '^(build|bin|firmware|\.d)/' > cpp_files.txt || true
+          echo "Found $(wc -l < cpp_files.txt) C++ files"
+          echo "count=$(wc -l < cpp_files.txt)" >> "$GITHUB_OUTPUT"
+
+      - name: clang-format (style)
+        if: steps.files.outputs.count != '0'
+        run: |
+          # Uses your .clang-format if present, otherwise falls back to Google style
+          xargs -a cpp_files.txt clang-format --style=file --fallback-style=Google --dry-run --Werror
+
+      - name: cppcheck (analysis)
+        if: steps.files.outputs.count != '0'
+        run: |
+          xargs -a cpp_files.txt cppcheck \
+            --enable=warning,style,performance,portability \
+            --inline-suppr \
+            --suppress=missingIncludeSystem \
+            --suppress=unknownMacro \
+            --error-exitcode=1 \
+            --quiet
