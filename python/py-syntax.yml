@@ -1,0 +1,19 @@
+name: Python Syntax
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  syntax:
+    name: compileall
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/py/setup
+
+      - run: python -m compileall -q . -x '(\.venv|build|\.git)'
