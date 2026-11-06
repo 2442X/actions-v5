@@ -11,6 +11,13 @@ REPO = "2442X/actions-v5"
 BRANCH = "main"
 DEST = ".github/workflows"
 PATTERN = re.compile(r"^(common|cpp|python)/[^/]+$")
+# Tool configs are only discovered from the repo root, not .github/workflows.
+ROOT_FILES = {"ruff.toml", ".codespellrc"}
+
+
+def dest_path(path):
+    name = os.path.basename(path)
+    return name if name in ROOT_FILES else os.path.join(DEST, name)
 
 
 def die(msg):
@@ -30,9 +37,9 @@ def list_files():
 
 
 def install(path):
-    out = os.path.join(DEST, os.path.basename(path))
+    out = dest_path(path)
     body = fetch(f"https://raw.githubusercontent.com/{REPO}/{BRANCH}/{path}")
-    os.makedirs(DEST, exist_ok=True)
+    os.makedirs(os.path.dirname(out) or ".", exist_ok=True)
     with open(out, "wb") as f:
         f.write(body)
     return out
@@ -61,7 +68,7 @@ def draw_box_text(scr, lines, title=""):
 
 
 def select_screen(scr, files, root):
-    existing = {f: os.path.exists(os.path.join(DEST, os.path.basename(f))) for f in files}
+    existing = {f: os.path.exists(dest_path(f)) for f in files}
     checked = set()
     cur = top = 0
     while True:
@@ -74,7 +81,7 @@ def select_screen(scr, files, root):
 
         scr.erase()
         put(scr, 0, 0, f" Install workflows  ·  {REPO}".ljust(w), w, curses.color_pair(1) | curses.A_BOLD)
-        put(scr, 1, 1, f"into {os.path.join(root, DEST)}", w - 2, curses.A_DIM)
+        put(scr, 1, 1, f"into {os.path.join(root, DEST)} (ruff.toml, .codespellrc → repo root)", w - 2, curses.A_DIM)
 
         for row, idx in enumerate(range(top, min(top + view, len(files)))):
             f = files[idx]
@@ -120,7 +127,7 @@ def confirm_overwrites(scr, selected, existing):
     """Returns the list of files to actually install."""
     keep, overwrite_all = [], False
     for f in selected:
-        out = os.path.join(DEST, os.path.basename(f))
+        out = dest_path(f)
         if not existing[f] or overwrite_all:
             keep.append(f)
             continue
@@ -177,7 +184,7 @@ def run(scr, root):
             results.append(f"Installed {install(f)}")
         except Exception as e:
             results.append(f"Failed {f}: {e}")
-    results += [f"Kept {os.path.join(DEST, os.path.basename(f))}" for f in skipped]
+    results += [f"Kept {dest_path(f)}" for f in skipped]
     results.append("Done!")
     return results
 
