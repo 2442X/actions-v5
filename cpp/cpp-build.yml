@@ -1,0 +1,36 @@
+name: C++ Build (PROS)
+
+on:
+  workflow_call:
+    inputs:
+      working-directory:
+        description: Folder containing project.pros
+        type: string
+        default: "."
+      artifact-name:
+        type: string
+        default: firmware
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: pros make
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory || '.' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/cpp/setup-pros
+
+      - run: pros make
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.artifact-name || 'firmware' }}
+          path: ${{ inputs.working-directory || '.' }}/bin/*.bin
+          if-no-files-found: error
