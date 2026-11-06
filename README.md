@@ -3,7 +3,7 @@ A toolkit for GitHub Actions on Vex V5 code.
 
 To use: <br>
 ```zsh
-curl -fsSL https://raw.githubusercontent.com/2442X/actions-v5/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/2442X/actions-v5/main/install.py | python3 -
 ```
 
 ## Directory Guide
