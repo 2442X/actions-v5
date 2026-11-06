@@ -1,0 +1,46 @@
+name: Lint C++
+
+on:
+  workflow_call:
+    inputs:
+      fallback-style:
+        description: clang-format style used when no .clang-format exists
+        type: string
+        default: Google
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: clang-format + cppcheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - run: |
+          sudo apt-get update
+          sudo apt-get install -y clang-format cppcheck
+
+      - id: files
+        uses: ./.github/actions/shared/list-files
+        with:
+          patterns: "*.cpp *.cc *.hpp *.h"
+
+      - name: clang-format
+        if: steps.files.outputs.count != '0'
+        run: |
+          xargs -a "${{ steps.files.outputs.list }}" \
+            clang-format --style=file --fallback-style="${{ inputs.fallback-style || 'Google' }}" --dry-run --Werror
+
+      - name: cppcheck
+        if: steps.files.outputs.count != '0'
+        run: |
+          xargs -a "${{ steps.files.outputs.list }}" cppcheck \
+            --enable=warning,style,performance,portability \
+            --inline-suppr \
+            --suppress=missingIncludeSystem \
+            --suppress=unknownMacro \
+            --error-exitcode=1 \
+            --quiet
