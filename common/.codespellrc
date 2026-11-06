@@ -1,0 +1,4 @@
+[codespell]
+skip = .git,build,bin,firmware,.venv,*.lock,docs
+ignore-words-list = ot,nd,te,ser
+check-filenames =
